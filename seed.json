@@ -1,0 +1,20 @@
+{
+  "praxis": "Praxis Mustermann",
+  "logo": "",
+  "uebungen": [
+    {"id": "1", "name": "Hüftstrecker im Vierfüßlerstand", "kategorie": "Hüfte", "bilder": [],
+     "text": "Vierfüßlerstand, Rücken gerade\nBein gestreckt nach hinten abheben\nBein gerade lassen, Richtung 17 Uhr führen\n3 × 12 Wiederholungen pro Seite"},
+    {"id": "2", "name": "Seitliches Beinheben", "kategorie": "Hüfte", "bilder": [],
+     "text": "Seitlage, unteres Bein leicht gebeugt\nOberes Bein gestreckt anheben\nFußspitze zeigt nach vorne, nicht nach oben\n3 × 15 Wiederholungen pro Seite"},
+    {"id": "3", "name": "Brücke (Bridging)", "kategorie": "Rücken", "bilder": [],
+     "text": "Rückenlage, Füße hüftbreit aufstellen\nBecken anheben bis Oberschenkel und Rumpf eine Linie bilden\nOben 3 Sekunden halten, Po anspannen\n3 × 10 Wiederholungen"},
+    {"id": "4", "name": "Katze – Kuh", "kategorie": "Rücken", "bilder": [],
+     "text": "Vierfüßlerstand\nRücken langsam rund machen, Kinn zur Brust\nDann ins leichte Hohlkreuz, Blick nach vorne\n2 × 10 langsame Wiederholungen"},
+    {"id": "5", "name": "Außenrotation mit Band", "kategorie": "Schulter", "bilder": [],
+     "text": "Ellenbogen 90° gebeugt, fest am Körper\nBand mit dem Unterarm nach außen ziehen\nSchulter bleibt tief, kein Hochziehen\n3 × 15 Wiederholungen pro Seite"},
+    {"id": "6", "name": "Wandsitz", "kategorie": "Knie", "bilder": [],
+     "text": "Rücken an die Wand, Füße hüftbreit\nIn die Hocke rutschen bis ca. 90° Kniewinkel\nKnie bleiben über den Sprunggelenken\n3 × 30 Sekunden halten"},
+    {"id": "7", "name": "Einbeinstand", "kategorie": "Knie", "bilder": [],
+     "text": "Auf einem Bein stehen, Knie leicht gebeugt\nBecken gerade halten\nKnie zeigt über die zweite Zehe\n3 × 30 Sekunden pro Seite"}
+  ]
+}

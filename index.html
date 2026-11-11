@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="de">
+<meta charset="utf-8">
+<title>Übungs-Buddy</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 15px/1.4 "Segoe UI", system-ui, sans-serif; color: #1c2733; background: #e9edf1; height: 100vh; display: flex; flex-direction: column; }
+  button, input, textarea, select { font: inherit; }
+  button { cursor: pointer; border: 1px solid #b8c2cc; background: #fff; border-radius: 6px; padding: 6px 12px; }
+  button.primary { background: #1f7a5c; border-color: #1f7a5c; color: #fff; font-weight: 600; }
+  button.go { font-size: 18px; padding: 10px 28px; }
+  button:disabled { opacity: .45; cursor: default; }
+  input[type=text], input[type=search], textarea { border: 1px solid #b8c2cc; border-radius: 6px; padding: 6px 8px; width: 100%; }
+
+  .bar { display: flex; gap: 12px; align-items: center; padding: 10px 16px; background: #fff; border-bottom: 1px solid #cfd6dd; }
+  .bar h1 { font-size: 18px; margin: 0 12px 0 0; }
+  .bar input { width: 220px; }
+  .bar .spacer { flex: 1; }
+  main { flex: 1; display: flex; min-height: 0; }
+  aside { width: 380px; background: #fff; border-right: 1px solid #cfd6dd; display: flex; flex-direction: column; }
+  aside .tools { padding: 10px; display: flex; gap: 8px; }
+  #list { overflow: auto; flex: 1; padding: 0 10px 10px; }
+  #list h3 { margin: 14px 0 4px; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: #6b7785; }
+  .item { display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 6px; }
+  .item:hover { background: #f1f4f7; }
+  .item.on { background: #dff3ea; }
+  .item input { width: 20px; height: 20px; }
+  .item label { flex: 1; cursor: pointer; }
+  .item button { border: 0; background: none; padding: 2px 6px; color: #6b7785; }
+  .preview { flex: 1; overflow: auto; padding: 24px; }
+
+  /* Das Blatt: A4, so wie es gedruckt wird */
+  #sheet { background: #fff; width: 210mm; min-height: 297mm; padding: 12mm; margin: 0 auto; box-shadow: 0 2px 12px #0003; }
+  .head { display: flex; align-items: center; gap: 6mm; border-bottom: .6mm solid #1f7a5c; padding-bottom: 4mm; margin-bottom: 4mm; height: 24mm; }
+  .head img { max-height: 18mm; max-width: 40mm; }
+  .head .praxis { font-size: 16pt; font-weight: 700; }
+  .head .sub { font-size: 10pt; color: #555; }
+  .head .right { margin-left: auto; text-align: right; font-size: 10pt; }
+  .ex { height: 78mm; padding: 3mm 0; border-bottom: .3mm solid #ccc; break-inside: avoid; display: flex; flex-direction: column; }
+  .ex h2 { font-size: 13pt; margin: 0 0 2mm; }
+  .ex .body { flex: 1; display: flex; gap: 6mm; min-height: 0; }
+  .ex .pics { display: flex; gap: 3mm; flex: 0 0 55%; }
+  .ex .pics img, .ex .pics .ph { flex: 1; min-width: 0; height: 100%; object-fit: contain; }
+  .ex .pics .ph { border: .3mm dashed #aaa; color: #aaa; display: grid; place-items: center; font-size: 9pt; }
+  .ex ul { margin: 0; padding-left: 5mm; font-size: 11pt; }
+  .ex li { margin-bottom: 2mm; }
+  .empty { color: #8a94a0; text-align: center; margin-top: 60mm; }
+
+  dialog { border: 0; border-radius: 10px; padding: 20px; width: 520px; box-shadow: 0 10px 40px #0005; }
+  dialog label { display: block; margin: 10px 0 4px; font-weight: 600; }
+  dialog .row { display: flex; gap: 8px; margin-top: 16px; }
+  dialog .thumbs { display: flex; gap: 6px; margin-top: 6px; }
+  dialog .thumbs img { height: 60px; border: 1px solid #ccc; }
+
+  @page { size: A4; margin: 0; }
+  @media print {
+    body { background: #fff; height: auto; display: block; }
+    .bar, aside, dialog { display: none !important; }
+    .preview { padding: 0; overflow: visible; }
+    #sheet { box-shadow: none; margin: 0; }
+  }
+</style>
+
+<div class="bar">
+  <h1>Übungs-Buddy</h1>
+  <input type="text" id="patient" placeholder="Name Patient (optional)">
+  <span id="count"></span>
+  <span class="spacer"></span>
+  <button id="settings">Praxis / Logo</button>
+  <button id="clear">Auswahl leeren</button>
+  <button id="go" class="primary go">Drucken</button>
+</div>
+<main>
+  <aside>
+    <div class="tools">
+      <input type="search" id="q" placeholder="Suchen …">
+      <button id="add" style="white-space:nowrap">+ Neue Übung</button>
+    </div>
+    <div id="list"></div>
+  </aside>
+  <div class="preview"><div id="sheet"></div></div>
+</main>
+
+<dialog id="dlg">
+  <form method="dialog">
+    <label>Name</label><input type="text" id="f_name" required>
+    <label>Kategorie (zum Sortieren)</label><input type="text" id="f_kat" list="kats"><datalist id="kats"></datalist>
+    <label>Anweisung (eine Zeile = ein Stichpunkt)</label><textarea id="f_text" rows="5"></textarea>
+    <label>Bilder (z. B. Start- und Endposition)</label>
+    <input type="file" id="f_pics" accept="image/*" multiple>
+    <div class="thumbs" id="f_thumbs"></div>
+    <div class="row">
+      <button type="button" id="f_del">Löschen</button>
+      <span style="flex:1"></span>
+      <button value="cancel" formnovalidate>Abbrechen</button>
+      <button value="ok" class="primary">Speichern</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="dlg2">
+  <form method="dialog">
+    <label>Praxisname</label><input type="text" id="s_praxis">
+    <label>Logo</label><input type="file" id="s_logo" accept="image/*">
+    <div class="row"><span style="flex:1"></span><button value="ok" class="primary">Fertig</button></div>
+  </form>
+</dialog>
+
+<script>
+const $ = id => document.getElementById(id);
+// kleines DOM-Helferlein; Text immer über textContent -> kein HTML-Injection aus den Daten
+const h = (tag, props, ...kids) => { const e = Object.assign(document.createElement(tag), props); e.append(...kids); return e; };
+
+let data = { praxis: '', logo: '', uebungen: [] };
+let picked = [];   // IDs in Klick-Reihenfolge = Druck-Reihenfolge
+let editing = null, editPics = [];
+
+const save = () => fetch('/api', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
+  .then(r => { if (!r.ok) throw 0; }).catch(() => alert('Speichern fehlgeschlagen – läuft das Programm noch?'));
+
+// Bild verkleinern und als Data-URL liefern.
+// ponytail: Bilder liegen als base64 in der JSON; bei hunderten Übungen auf einzelne Dateien umstellen.
+const readImg = file => new Promise(res => {
+  const img = new Image();
+  img.onload = () => {
+    const s = Math.min(1, 900 / Math.max(img.width, img.height));
+    const c = h('canvas', { width: img.width * s, height: img.height * s });
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height);
+    ctx.drawImage(img, 0, 0, c.width, c.height);
+    URL.revokeObjectURL(img.src);
+    res(c.toDataURL('image/jpeg', 0.85));
+  };
+  img.src = URL.createObjectURL(file);
+});
+
+function renderList() {
+  const q = $('q').value.toLowerCase();
+  const list = $('list'); list.replaceChildren();
+  const sorted = [...data.uebungen].sort((a, b) => (a.kategorie + a.name).localeCompare(b.kategorie + b.name, 'de'));
+  let kat = null;
+  for (const u of sorted) {
+    if (q && !(u.name + ' ' + u.kategorie).toLowerCase().includes(q)) continue;
+    if (u.kategorie !== kat) list.append(h('h3', {}, (kat = u.kategorie) || 'Ohne Kategorie'));
+    const on = picked.includes(u.id);
+    const cb = h('input', { type: 'checkbox', id: 'cb' + u.id, checked: on, onchange: () => {
+      picked = cb.checked ? [...picked, u.id] : picked.filter(i => i !== u.id); render(); } });
+    list.append(h('div', { className: 'item' + (on ? ' on' : '') }, cb,
+      h('label', { htmlFor: 'cb' + u.id }, u.name),
+      h('button', { title: 'Bearbeiten', onclick: () => openEdit(u) }, '✎')));
+  }
+  $('kats').replaceChildren(...[...new Set(data.uebungen.map(u => u.kategorie).filter(Boolean))].map(k => h('option', { value: k })));
+}
+
+function renderSheet() {
+  const sheet = $('sheet'); sheet.replaceChildren();
+  const head = h('div', { className: 'head' });
+  if (data.logo) head.append(h('img', { src: data.logo }));
+  head.append(h('div', {}, h('div', { className: 'praxis' }, data.praxis), h('div', { className: 'sub' }, 'Ihre Übungen für zu Hause')));
+  head.append(h('div', { className: 'right' }, $('patient').value, h('br'), new Date().toLocaleDateString('de-DE')));
+  sheet.append(head);
+  const sel = picked.map(id => data.uebungen.find(u => u.id === id)).filter(Boolean);
+  if (!sel.length) sheet.append(h('div', { className: 'empty' }, 'Links Übungen anhaken – hier erscheint die Vorschau.'));
+  for (const u of sel) {
+    const pics = h('div', { className: 'pics' });
+    if (u.bilder.length) u.bilder.forEach(b => pics.append(h('img', { src: b })));
+    else pics.append(h('div', { className: 'ph' }, 'Bild folgt'));
+    const ul = h('ul', {}, ...u.text.split('\n').filter(l => l.trim()).map(l => h('li', {}, l)));
+    sheet.append(h('div', { className: 'ex' }, h('h2', {}, u.name), h('div', { className: 'body' }, pics, ul)));
+  }
+  $('count').textContent = sel.length ? sel.length + ' ausgewählt' + (sel.length > 3 ? ' (mehr als 1 Seite)' : '') : '';
+  $('go').disabled = !sel.length;
+}
+const render = () => { renderList(); renderSheet(); };
+
+function renderThumbs() {
+  $('f_thumbs').replaceChildren(...editPics.map((b, i) =>
+    h('img', { src: b, title: 'Klicken zum Entfernen', onclick: () => { editPics.splice(i, 1); renderThumbs(); } })));
+}
+function openEdit(u) {
+  editing = u;
+  editPics = u ? [...u.bilder] : [];
+  $('f_name').value = u?.name ?? ''; $('f_kat').value = u?.kategorie ?? ''; $('f_text').value = u?.text ?? '';
+  $('f_pics').value = ''; $('f_del').hidden = !u;
+  renderThumbs();
+  $('dlg').showModal();
+}
+$('f_pics').onchange = async e => { for (const f of e.target.files) editPics.push(await readImg(f)); e.target.value = ''; renderThumbs(); };
+$('f_del').onclick = () => {
+  if (!confirm('Übung "' + editing.name + '" wirklich löschen?')) return;
+  data.uebungen = data.uebungen.filter(u => u !== editing);
+  picked = picked.filter(i => i !== editing.id);
+  $('dlg').close('cancel'); save(); render();
+};
+$('dlg').onclose = () => {
+  if ($('dlg').returnValue !== 'ok') return;
+  const u = editing ?? { id: String(Date.now()) };
+  Object.assign(u, { name: $('f_name').value.trim(), kategorie: $('f_kat').value.trim(), text: $('f_text').value, bilder: editPics });
+  if (!editing) data.uebungen.push(u);
+  save(); render();
+};
+
+$('add').onclick = () => openEdit(null);
+$('q').oninput = renderList;
+$('patient').oninput = renderSheet;
+$('clear').onclick = () => { picked = []; $('patient').value = ''; render(); };
+$('go').onclick = () => window.print();
+$('settings').onclick = () => { $('s_praxis').value = data.praxis; $('s_logo').value = ''; $('dlg2').showModal(); };
+$('s_logo').onchange = async e => { if (e.target.files[0]) data.logo = await readImg(e.target.files[0]); };
+$('dlg2').onclose = () => { data.praxis = $('s_praxis').value.trim(); save(); render(); };
+
+fetch('/api').then(r => r.json()).then(d => { data = d; render(); });
+</script>
+</html>
